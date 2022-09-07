@@ -24,7 +24,7 @@ class Button {
         pop();
     }
 
-    mousePressed(mx, my) {
+    mouseReleased(mx, my) {
         if (mx > this.x && mx < this.x + this.w &&
             my > this.y && my < this.y + this.h) {
             this.functionOnPress();

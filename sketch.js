@@ -35,8 +35,8 @@ function keyPressed() {
   return false;
 }
 
-function mousePressed() {
-  pixelCanvas.mousePressed(mouseX, mouseY);
+function mouseReleased() {
+  pixelCanvas.mouseReleased(mouseX, mouseY);
 }
 
 function calcCanvasDimensions() {

@@ -71,8 +71,8 @@ class PixelCanvas {
         pop();
     }
 
-    mousePressed(mx, my) {
-        this.options.mousePressed(mx, my);
+    mouseReleased(mx, my) {
+        this.options.mouseReleased(mx, my);
     }
 
     keyPressed(keyCode) {

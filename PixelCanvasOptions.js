@@ -1,6 +1,8 @@
 let TITLE_BAR_HEIGHT = 50;
 let PADDING_INC = 10;
 
+//if we ever want to use position() on a p5 element we need to get its window position 
+let WINDOW_HEIGHT_DIF = 80;
 
 class PixelCanvasOptions {
     constructor(x, y, w, h, parentPixelCanvas) {
@@ -10,18 +12,36 @@ class PixelCanvasOptions {
         this.w = w;
         this.pixelCanvas = parentPixelCanvas;
         this.selectedCategory = 1;
+        this.titleButtonFillColor = color(118, 182, 222);
+        this.selectedTitleFill = color(207, 76, 102);
+        let titleY = this.y;
+        let titleW = this.w / 3;
+        let titleH = TITLE_BAR_HEIGHT;
+        this.colorButton = new Button(this.x + (this.w / 3) * 0, titleY, titleW, titleH, this.selectedTitleFill, "COLOR", () => this.switchTitleOption("COLOR"));
+        this.sizingButton = new Button(this.x + (this.w / 3) * 1, titleY, titleW, titleH, this.titleButtonFillColor, "SIZING", () => this.switchTitleOption("SIZING"));
+        this.fileButton = new Button(this.x + (this.w / 3) * 2, titleY, titleW, titleH, this.titleButtonFillColor, "FILE", () => this.switchTitleOption("FILE"));
+
+
         this.buttons = [];
-        this.selectedColor = color(207, 76, 102);
+        this.buttons.push(this.colorButton);
+        this.buttons.push(this.sizingButton);
+        this.buttons.push(this.fileButton);
+
 
         this.colorPickerX = this.x + PADDING_INC;
         this.colorPickerY = this.y + TITLE_BAR_HEIGHT + PADDING_INC;
         this.colorPickerW = 255;
         this.colorPickerH = 255;
 
+        this.selectedColor = color(255, 255, 255);
+        console.log("brightness: ", brightness(this.selectedColor))
+        this.brightnessSlider = createSlider(0, 1, map(brightness(this.selectedColor), 0, 100, 0, 1), 0.01);
+        this.opacitySlider = createSlider(0, 255, 255, 1);
 
     }
 
     display() {
+
 
         this.displayBackground();
 
@@ -37,14 +57,15 @@ class PixelCanvasOptions {
         }
     }
 
-    mousePressed(mx, my) {
+    mouseReleased(mx, my) {
         for (let i = 0; i < this.buttons.length; i++) {
-            this.buttons[i].mousePressed(mx, my);
+            this.buttons[i].mouseReleased(mx, my);
         }
     }
 
     changeSelectedColor(r, g, b) {
         this.selectedColor = color(r, g, b);
+        // this.brightnessSlider.value(map(brightness(this.selectedColor), 0, 255, 0, 1));
         this.displaySelectedColor();
     }
 
@@ -59,31 +80,10 @@ class PixelCanvasOptions {
     displaySelectorBar() {
 
 
-        let titleStrings = ["COLOR", "SIZING", "FILE"]
-        push();
+        this.colorButton.run();
+        this.sizingButton.run();
+        this.fileButton.run();
 
-        for (let i = 0; i < titleStrings.length; i++) {
-            stroke(20);
-            let buttonFillColor = color(118, 182, 222);
-            if (i + 1 === this.selectedCategory) {
-                buttonFillColor = color(207, 76, 102);
-            }
-
-            let titleX = this.x + (this.w / titleStrings.length) * i;
-            let titleY = this.y;
-            let titleW = this.w / titleStrings.length;
-            let titleH = TITLE_BAR_HEIGHT;
-            let b = new Button(titleX, titleY, titleW, titleH, buttonFillColor, titleStrings[i], () => this.switchTitleOption(titleStrings[i]));
-
-
-            if (!this.buttons.includes(b)) {
-                this.buttons.push(b);
-            }
-            b.run();
-
-        }
-
-        pop();
     }
 
 
@@ -93,6 +93,7 @@ class PixelCanvasOptions {
 
 
         if (optionTitle === "COLOR") {
+            console.log("color")
             this.selectedCategory = 1;
             this.buttons[0].color = color(207, 76, 102);
             this.buttons[1].color = color(118, 182, 222);
@@ -100,6 +101,7 @@ class PixelCanvasOptions {
             this.displayColorOptions();
         }
         if (optionTitle === "SIZING") {
+            console.log("sizing")
             this.selectedCategory = 2;
             this.buttons[1].color = color(207, 76, 102);
             this.buttons[2].color = color(118, 182, 222);
@@ -107,6 +109,7 @@ class PixelCanvasOptions {
             this.displaySizingOptions();
         }
         if (optionTitle === "FILE") {
+            console.log("file")
             this.selectedCategory = 3;
             this.buttons[2].color = color(207, 76, 102);
             this.buttons[0].color = color(118, 182, 222);
@@ -134,43 +137,69 @@ class PixelCanvasOptions {
         this.displaySelectedColor();
         pop();
 
-        //color selector invisible button
-        let b = new Button(this.x + PADDING_INC, this.y + TITLE_BAR_HEIGHT + PADDING_INC, 255, 255, color(0, 0, 0, 0), "", () => this.getColorOfClick(mouseX, mouseY, this.colorPickerX, this.colorPickerY, this.colorPickerW, this.colorPickerH));
-        b.run();
 
-        if (!this.buttons.includes(b)) {
-            this.buttons.push(b);
-        }
 
+        // sliders and rgb details
+
+        this.opacitySlider.position(this.colorPickerX + this.colorPickerW + PADDING_INC * 3, this.colorPickerY + WINDOW_HEIGHT_DIF);
+        this.opacitySlider.mouseReleased(() => {
+            this.selectedColor.setAlpha(this.opacitySlider.value());
+            this.display();
+        });
+
+        this.brightnessSlider.position(this.colorPickerX + this.colorPickerW + PADDING_INC * 3, this.colorPickerY + WINDOW_HEIGHT_DIF + PADDING_INC * 3);
+        this.brightnessSlider.mouseReleased((val) => {
+
+            this.changeSelectedColor(red(this.selectedColor), green(this.selectedColor), blue(this.selectedColor));
+            this.display();
+        });
     }
 
+
+
     getColorOfClick(mx, my, cpx, cpy, cpw, cph) {
+        this.opacitySlider.value(255);
+
         // console.log("changing selected color: ", cpx + cpw - mx, my - cpy, mx - cpx);
-        this.changeSelectedColor(cpx + cpw - mx, my - cpy, mx - cpx);
+        let bv = this.brightnessSlider.value() * 2;
+        this.changeSelectedColor(bv * (cpx + cpw - mx), bv * (my - cpy), bv * (mx - cpx));
 
 
     }
 
     displaySelectedColor() {
+
+
         push();
         noStroke();
-        fill(this.selectedColor);
+        console.log(red(this.selectedColor), green(this.selectedColor), blue(this.selectedColor), alpha(this.selectedColor))
+        fill(red(this.selectedColor), green(this.selectedColor), blue(this.selectedColor), alpha(this.selectedColor));
         rect(this.x + PADDING_INC, this.y + TITLE_BAR_HEIGHT + 255 + PADDING_INC * 2, 255, PADDING_INC * 3);
         pop();
     }
 
     displayColorPicker() {
+
         let img = createImage(255, 255);
         img.loadPixels();
 
+        let bv = this.brightnessSlider.value() * 2;
+
         for (let i = 0; i < img.width; i++) {
             for (let j = 0; j < img.height; j++) {
-                img.set(i, j, color(255 - i, j, i));
+                img.set(i, j, color(bv * (255 - i), bv * j, bv * i));
             }
         }
         img.updatePixels();
 
         image(img, this.colorPickerX, this.colorPickerY);
+
+        //color selector invisible button
+        let b = new Button(this.x + PADDING_INC, this.y + TITLE_BAR_HEIGHT + PADDING_INC, 255, 255, color(0, 0, 0, 0), "", () => this.getColorOfClick(mouseX, mouseY, this.colorPickerX, this.colorPickerY, this.colorPickerW, this.colorPickerH));
+
+        if (!this.buttons.includes(b)) {
+            this.buttons.push(b);
+        }
     }
 
     displaySizingOptions() {
