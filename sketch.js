@@ -22,17 +22,21 @@ function setup() {
     PIXEL_CANVAS_H,
     PIXEL_CANVAS_RES
   );
-
+  noLoop();
 }
 
 function draw() {
-  background(127);
-  pixelCanvas.draw();
+  background(230);
+  pixelCanvas.display();
 }
 
 function keyPressed() {
   pixelCanvas.keyPressed(keyCode);
   return false;
+}
+
+function mousePressed() {
+  pixelCanvas.mousePressed(mouseX, mouseY);
 }
 
 function calcCanvasDimensions() {
